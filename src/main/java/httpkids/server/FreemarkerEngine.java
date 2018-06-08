@@ -5,6 +5,7 @@ import java.io.StringWriter;
 import java.util.Map;
 
 import freemarker.template.Configuration;
+import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
@@ -20,7 +21,7 @@ public class FreemarkerEngine implements ITemplateEngine {
 	@Override
 	public String render(String path, Map<String, Object> context) {
 		try {
-			var template = config.getTemplate(path, "utf-8");
+			Template template = config.getTemplate(path, "utf-8");
 			StringWriter writer = new StringWriter();
 			template.process(context, writer);
 			return writer.toString();

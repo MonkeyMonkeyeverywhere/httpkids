@@ -61,7 +61,7 @@ public class StaticRequestHandler implements IRequestHandler {
 
 	@Override
 	public void handle(KidsContext ctx, KidsRequest req) {
-		var path = req.relativeUri();
+		String path = req.relativeUri();
 		path = Paths.get(this.staticRoot, path).toString();
 		if (classpath) {
 			sendResource(ctx, path);
@@ -70,8 +70,10 @@ public class StaticRequestHandler implements IRequestHandler {
 		}
 	}
 
+	@Deprecated
 	public void sendResource(KidsContext ctx, String path) {
-		InputStream is = null;
+		//TODO 注释了这个方法
+		/*InputStream is = null;
 		byte[] bytes = null;
 		try {
 			is = this.getClass().getResourceAsStream(path);
@@ -101,11 +103,11 @@ public class StaticRequestHandler implements IRequestHandler {
 
 		ByteBuf buf = ctx.alloc().buffer();
 		buf.writeBytes(bytes);
-		ctx.send(response, new DefaultHttpContent(buf), LastHttpContent.EMPTY_LAST_CONTENT);
+		ctx.send(response, new DefaultHttpContent(buf), LastHttpContent.EMPTY_LAST_CONTENT);*/
 	}
 
 	public void sendFile(KidsContext ctx, String path, String ifModifiedSince) {
-		var file = new File(path);
+		File file = new File(path);
 		if (!file.exists()) {
 			throw new AbortException(HttpResponseStatus.NOT_FOUND);
 		}

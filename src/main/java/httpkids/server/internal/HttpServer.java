@@ -1,13 +1,10 @@
 package httpkids.server.internal;
 
+import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -46,7 +43,7 @@ public class HttpServer {
 		bootstrap.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			public void initChannel(SocketChannel ch) throws Exception {
-				var pipe = ch.pipeline();
+				ChannelPipeline pipe = ch.pipeline();
 				pipe.addLast(new ReadTimeoutHandler(10));
 				pipe.addLast(new HttpServerCodec());
 				pipe.addLast(new HttpObjectAggregator(1 << 30)); // max_size = 1g

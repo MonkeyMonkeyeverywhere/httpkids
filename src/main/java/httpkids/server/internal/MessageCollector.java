@@ -1,10 +1,7 @@
 package httpkids.server.internal;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.CRC32;
 
@@ -25,7 +22,7 @@ public class MessageCollector extends ChannelInboundHandlerAdapter {
 	private int requestsMaxInflight = 1000;
 
 	public MessageCollector(int workerThreads, IRequestDispatcher dispatcher) {
-		var factory = new ThreadFactory() {
+		ThreadFactory factory = new ThreadFactory() {
 
 			AtomicInteger seq = new AtomicInteger();
 
@@ -40,7 +37,7 @@ public class MessageCollector extends ChannelInboundHandlerAdapter {
 
 		this.executors = new ThreadPoolExecutor[workerThreads];
 		for (int i = 0; i < workerThreads; i++) {
-			var queue = new ArrayBlockingQueue<Runnable>(requestsMaxInflight);
+			BlockingQueue queue = new ArrayBlockingQueue<Runnable>(requestsMaxInflight);
 			this.executors[i] = new ThreadPoolExecutor(1, 1, 30, TimeUnit.SECONDS, queue, factory,
 					new CallerRunsPolicy());
 		}
@@ -48,12 +45,12 @@ public class MessageCollector extends ChannelInboundHandlerAdapter {
 	}
 
 	public void closeGracefully() {
-		for (var i = 0; i < executors.length; i++) {
-			var executor = executors[i];
+		for (int i = 0; i < executors.length; i++) {
+			ExecutorService executor = executors[i];
 			executor.shutdown();
 		}
-		for (var i = 0; i < executors.length; i++) {
-			var executor = executors[i];
+		for (int i = 0; i < executors.length; i++) {
+			ExecutorService executor = executors[i];
 			try {
 				executor.awaitTermination(10, TimeUnit.SECONDS);
 			} catch (InterruptedException e) {
@@ -76,8 +73,8 @@ public class MessageCollector extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		if (msg instanceof FullHttpRequest) {
-			var req = (FullHttpRequest) msg;
-			var crc32 = new CRC32();
+			FullHttpRequest req = (FullHttpRequest) msg;
+			CRC32 crc32 = new CRC32();
 			crc32.update(ctx.hashCode());
 			int idx = (int) (crc32.getValue() % executors.length);
 			this.executors[idx].execute(() -> {
